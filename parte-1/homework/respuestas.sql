@@ -148,7 +148,7 @@ order by monto_vendido DESC
 
 
 --13 Cual es el precio promedio de venta de cada producto en las distintas monedas? 
-Recorda que los valores de venta, impuesto, descuentos y creditos es por el total de la linea.
+--Recorda que los valores de venta, impuesto, descuentos y creditos es por el total de la linea.
 select producto, moneda, avg((coalesce(venta,0)+coalesce(impuestos,0)+coalesce(descuento,0)+coalesce(creditos,0))) as promedio_precio 
 from stg.order_line_sale
 group by producto, moneda
@@ -163,3 +163,50 @@ order by orden
 
 
 CLASE 3:
+--1. Mostrar nombre y codigo de producto, categoria y color para todos los productos de la marca Philips y Samsung, 
+--mostrando la leyenda "Unknown" cuando no hay un color disponible
+SELECT nombre,codigo_producto,categoria,COALESCE(color,'Unknown')
+FROM stg.product_master
+where LOWER(nombre) LIKE ANY (ARRAY['%sams%','%phil%'])
+
+--2. Calcular las ventas brutas y los impuestos pagados por pais y provincia en la moneda correspondiente.
+select SM.pais,SM.provincia,sum(OLS.venta),sum(OLS.impuestos)
+from stg.store_master as SM
+left join stg.order_line_sale as OLS
+on SM.codigo_tienda = OLS.tienda
+group by SM.pais,SM.provincia
+order by SM.pais
+
+--3. Calcular las ventas totales por subcategoria de producto para cada moneda ordenados por subcategoria y moneda.
+select PM.subcategoria,OLS.moneda,sum(OLS.venta)
+from stg.product_master as PM
+left join stg.order_line_sale as OLS
+on PM.codigo_producto = OLS.producto
+group by PM.subcategoria,OLS.moneda
+order by PM.subcategoria,OLS.moneda
+
+--4. Calcular las unidades vendidas por subcategoria de producto y la concatenacion de pais, provincia; \
+--usar guion como separador y usarla para ordernar el resultado.
+SELECT PM.subcategoria,SUM(OLS.cantidad) as unidades_vendidas,CONCAT(sm.pais,'-',sm.provincia) AS ubicacion_producto
+from stg.order_line_sale as OLS
+left join stg.product_master as PM  
+on OLS.producto = PM.codigo_producto
+left join stg.store_master as SM 
+on OLS.tienda=SM.codigo_tienda
+group by PM.subcategoria,OLS.cantidad,ubicacion_producto
+order by ubicacion_producto 
+
+--5. Mostrar una vista donde sea vea el nombre de tienda y la cantidad de entradas de personas que hubo desde la fecha de apertura para el sistema "super_store".
+
+--6. Cual es el nivel de inventario promedio en cada mes a nivel de codigo de producto y tienda; mostrar el resultado con el nombre de la tienda.
+
+--7. Calcular la cantidad de unidades vendidas por material. Para los productos que no tengan material usar 'Unknown', homogeneizar los textos si es necesario.
+
+--8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
+
+--9. Calcular cantidad de ventas totales de la empresa en dolares.
+
+--10. Mostrar en la tabla de ventas el margen de venta por cada linea. Siendo margen = (venta - descuento) - costo expresado en dolares.
+
+--11. Calcular la cantidad de items distintos de cada subsubcategoria que se llevan por numero de orden.
+
